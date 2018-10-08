@@ -2,13 +2,9 @@ module Test.Pos.Util.Golden where
 
 import           Universum
 
-<<<<<<< HEAD
 import           Data.Aeson (FromJSON, ToJSON, eitherDecode, encode)
-import           Data.Aeson.Encode.Pretty (encodePretty)
-=======
-import           Data.Aeson (FromJSON, ToJSON, eitherDecode)
-import           Data.Aeson.Encode.Pretty
->>>>>>> 102265fce... [CDEC-507] Modify `StaticConfig`'s `ToJSON` instance and implement
+import           Data.Aeson.Encode.Pretty (Config (..), Indent (..),
+                     NumberFormat (..), encodePretty', keyOrder)
 import qualified Data.ByteString.Lazy as LB
 import           Data.FileEmbed (embedStringFile)
 import qualified Data.List as List
@@ -40,6 +36,17 @@ eachOf testLimit things hasProperty =
 embedGoldenTest :: FilePath -> ExpQ
 embedGoldenTest path =
     makeRelativeToTestDir ("golden/" <> path) >>= embedStringFile
+
+-- | Test if prettified JSON and unformatted JSON are equivalent.
+goldenFileEquiv :: (Eq a)
+                => Either String a -> Either String a -> Either String Bool
+goldenFileEquiv prettified unformatted = do
+        case prettified of
+            Left err -> Left $ "could not decode: " <> show err
+            Right x ->  case unformatted of
+                            Left err -> Left $ "could not decode: " <> show err
+                            Right x' -> Right $ x' == x
+
 
 goldenTestJSON :: (Eq a, FromJSON a, HasCallStack, Show a, ToJSON a)
                => a -> FilePath -> Property
