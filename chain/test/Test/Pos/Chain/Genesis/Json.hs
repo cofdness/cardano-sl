@@ -25,7 +25,8 @@ import           Test.Pos.Chain.Genesis.Gen (genGenesisAvvmBalances,
                      genGenesisInitializer, genGenesisProtocolConstants,
                      genStaticConfig)
 import           Test.Pos.Core.ExampleHelpers (feedPM)
-import           Test.Pos.Util.Golden (discoverGolden, eachOf, goldenFileEquiv,
+import           Test.Pos.Util.Golden (discoverGolden, eachOf,
+                     goldenFileCanonicalEquiv, goldenFileEquiv,
                      goldenTestCanonicalJSONDec, goldenTestJSONDec,
                      goldenTestJSONPretty)
 import           Test.Pos.Util.Tripping (discoverRoundTrip, roundTripsAesonShow,
@@ -158,6 +159,23 @@ roundTripGenesisData :: Property
 roundTripGenesisData =
     eachOf 100 (feedPM genGenesisData) roundTripsCanonicalJSONShow
 
+golden_prettyEquivalence_canonical_GenesisData_0 :: Property
+golden_prettyEquivalence_canonical_GenesisData_0 =
+    goldenFileCanonicalEquiv
+        "test/golden/canonical-json/GenesisData0_Legacy_HasNetworkMagic"
+            "test/golden/oldCanonical-json/GenesisData0_Legacy_HasNetworkMagic"
+
+golden_prettyEquivalence_canonical_GenesisData_1 :: Property
+golden_prettyEquivalence_canonical_GenesisData_1 =
+    goldenFileCanonicalEquiv
+        "test/golden/canonical-json/GenesisData1_Legacy_HasNetworkMagic"
+            "test/golden/oldCanonical-json/GenesisData1_Legacy_HasNetworkMagic"
+
+golden_prettyEquivalence_canonical_GenesisData_2 :: Property
+golden_prettyEquivalence_canonical_GenesisData_2 =
+    goldenFileCanonicalEquiv
+        "test/golden/canonical-json/GenesisData2_Legacy_HasNetworkMagic"
+            "test/golden/oldCanonical-json/GenesisData2_Legacy_HasNetworkMagic"
 --------------------------------------------------------------------------------
 -- GenesisAvvmBalances
 --------------------------------------------------------------------------------

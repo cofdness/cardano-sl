@@ -47,6 +47,16 @@ goldenFileEquiv prettified unformatted = do
                             Left err -> Left $ "could not decode: " <> show err
                             Right x' -> Right $ x' == x
 
+-- | Test if prettified canonical JSON and unformatted canonical
+-- JSON are equivalent.
+goldenFileCanonicalEquiv :: HasCallStack => FilePath -> FilePath -> Property
+goldenFileCanonicalEquiv pPath uPath = withFrozenCallStack $ do
+    withTests 1 . property $ do
+        pStr <- liftIO $ readFile pPath
+        uBs <- liftIO $ LB.readFile uPath
+        case Canonical.parseCanonicalJSON uBs of
+            Left err ->  failWith Nothing $ "could not decode: " <> show err
+            Right jsVal -> (toText $ Canonical.prettyCanonicalJSON jsVal) === pStr
 
 goldenTestJSON :: (Eq a, FromJSON a, HasCallStack, Show a, ToJSON a)
                => a -> FilePath -> Property
@@ -80,7 +90,7 @@ goldenTestJSONDec :: (Eq a, FromJSON a, HasCallStack, Show a)
                   => a -> FilePath -> Property
 goldenTestJSONDec x path = withFrozenCallStack $ do
     withTests 1 . property $ do
-        bs <- liftIO (LB.readFile path)
+        bs <- liftIO $ LB.readFile path
         case eitherDecode bs of
             Left err -> failWith Nothing $ "could not decode: " <> show err
             Right x' -> x === x'
