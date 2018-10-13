@@ -15408,6 +15408,7 @@ libraryToolDepends = [
 cpphs
 ];
 testHaskellDepends = [
+aeson
 base
 base16-bytestring
 bytestring
@@ -15469,6 +15470,7 @@ license = stdenv.lib.licenses.mit;
 "cardano-sl-chain-test" = callPackage
 ({
   mkDerivation
+, aeson
 , base
 , base16-bytestring
 , bytestring
@@ -15483,6 +15485,7 @@ license = stdenv.lib.licenses.mit;
 , cardano-sl-util
 , cardano-sl-util-test
 , containers
+, cryptonite
 , data-default
 , formatting
 , generic-arbitrary
@@ -15510,6 +15513,7 @@ configureFlags = [
 "--ghc-option=-Werror"
 ];
 libraryHaskellDepends = [
+aeson
 base
 base16-bytestring
 bytestring
@@ -15524,6 +15528,7 @@ cardano-sl-crypto-test
 cardano-sl-util
 cardano-sl-util-test
 containers
+cryptonite
 data-default
 formatting
 generic-arbitrary
@@ -17527,6 +17532,7 @@ license = stdenv.lib.licenses.mit;
 ({
   mkDerivation
 , aeson
+, aeson-pretty
 , async
 , auto-update
 , base
@@ -17645,6 +17651,7 @@ cpphs
 ];
 testHaskellDepends = [
 aeson
+aeson-pretty
 async
 base
 bytestring
@@ -17681,6 +17688,7 @@ license = stdenv.lib.licenses.mit;
 ({
   mkDerivation
 , aeson
+, aeson-pretty
 , attoparsec
 , base
 , base16-bytestring
@@ -17722,6 +17730,7 @@ configureFlags = [
 ];
 libraryHaskellDepends = [
 aeson
+aeson-pretty
 attoparsec
 base
 base16-bytestring
