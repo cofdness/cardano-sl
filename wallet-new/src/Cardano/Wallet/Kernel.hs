@@ -93,17 +93,18 @@ defaultSqlitePath = "./wallet-db-sqlite.sqlite3"
 -- it shouldn't be too specific.
 bracketPassiveWallet
     :: (MonadMask m, MonadIO m)
-    => DatabaseMode
+    => ProtocolMagic
+    -> DatabaseMode
     -> (Severity -> Text -> IO ())
     -> Keystore
     -> NodeStateAdaptor IO
     -> (PassiveWallet -> m a) -> m a
-bracketPassiveWallet mode logMsg keystore node f =
+bracketPassiveWallet pm mode logMsg keystore node f =
     bracket (liftIO $ handlesOpen mode)
             (liftIO . handlesClose mode)
             (\ handles ->
                 bracket
-                  (liftIO $ initPassiveWallet logMsg keystore handles node)
+                  (liftIO $ initPassiveWallet pm logMsg keystore handles node)
                   (\_ -> return ())
                   f)
 
@@ -149,12 +150,13 @@ handlesClose dbMode (Handles acidDb meta) = do
 -------------------------------------------------------------------------------}
 
 -- | Initialise Passive Wallet
-initPassiveWallet :: (Severity -> Text -> IO ())
+initPassiveWallet :: ProtocolMagic
+                  -> (Severity -> Text -> IO ())
                   -> Keystore
                   -> WalletHandles
                   -> NodeStateAdaptor IO
                   -> IO PassiveWallet
-initPassiveWallet logMessage keystore handles node = do
+initPassiveWallet pm logMessage keystore handles node = do
     pw <- preparePassiveWallet
     initSubmission pw
     return pw
@@ -170,6 +172,7 @@ initPassiveWallet logMessage keystore handles node = do
                   _walletLogMessage      = logMessage
                 , _walletKeystore        = keystore
                 , _wallets               = hAcid handles
+                , _walletProtocolMagic   = pm
                 , _walletMeta            = hMeta handles
                 , _walletNode            = node
                 , _walletSubmission      = submission
@@ -190,12 +193,10 @@ initPassiveWallet logMessage keystore handles node = do
 
 -- | Initialize the active wallet
 bracketActiveWallet :: (MonadMask m, MonadIO m)
-                    => ProtocolMagic
-                    -> PassiveWallet
+                    => PassiveWallet
                     -> WalletDiffusion
                     -> (ActiveWallet -> m a) -> m a
-bracketActiveWallet walletProtocolMagic
-                    walletPassive
+bracketActiveWallet walletPassive
                     walletDiffusion
                     runActiveWallet = do
     submissionLayerTicker <- liftIO $ async $

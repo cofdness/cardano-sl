@@ -35,12 +35,13 @@ import           Pos.Core
 import           Pos.Core.Chrono
 import           Pos.Core.Slotting (EpochIndex (..), LocalSlotIndex (..),
                      SlotId (..))
+import           Pos.Crypto (ProtocolMagic)
 import           Pos.Util (withCompileInfo)
 
 import           Test.Hspec
 import           Test.Infrastructure.Genesis
 import           Test.Pos.Configuration (withDefConfiguration,
-                     withDefUpdateConfiguration)
+                     withDefUpdateConfiguration, withProvidedMagicConfig)
 import           UTxO.Context
 import           UTxO.DSL
 import           Wallet.Inductive
@@ -143,9 +144,10 @@ type TxScenarioRet h = (MockNodeStateParams, Inductive h Addr, PassiveWallet -> 
 
 -- | Scenario A
 -- Empty case
-txMetaScenarioA :: GenesisValues h Addr
+txMetaScenarioA :: ProtocolMagic
+                   -> GenesisValues h Addr
                    -> TxScenarioRet h
-txMetaScenarioA GenesisValues{..} = (nodeStParams1, ind, lengthCheck 0)
+txMetaScenarioA pm GenesisValues{..} = (nodeStParams1 pm, ind, lengthCheck 0)
   where
     ind = Inductive {
           inductiveBoot   = boot
@@ -157,9 +159,10 @@ txMetaScenarioA GenesisValues{..} = (nodeStParams1, ind, lengthCheck 0)
 -- | Scenario B
 -- A single pending payment.
 txMetaScenarioB :: forall h. Hash h Addr
-                   => GenesisValues h Addr
+                   => ProtocolMagic
+                   -> GenesisValues h Addr
                    -> TxScenarioRet h
-txMetaScenarioB genVals@GenesisValues{..} = (nodeStParams1, ind, check)
+txMetaScenarioB pm genVals@GenesisValues{..} = (nodeStParams1 pm, ind, check)
   where
     t0 = paymentWithChangeFromP0ToP1 genVals
     ind = Inductive {
@@ -178,9 +181,10 @@ txMetaScenarioB genVals@GenesisValues{..} = (nodeStParams1, ind, check)
 -- | Scenario C
 -- A single pending payment and then confirmation.
 txMetaScenarioC :: forall h. Hash h Addr
-                   => GenesisValues h Addr
+                   => ProtocolMagic
+                   -> GenesisValues h Addr
                    -> TxScenarioRet h
-txMetaScenarioC genVals@GenesisValues{..} = (nodeStParams1, ind, check)
+txMetaScenarioC pm genVals@GenesisValues{..} = (nodeStParams1 pm, ind, check)
   where
     t0 = paymentWithChangeFromP0ToP1 genVals
     ind = Inductive {
@@ -200,9 +204,10 @@ txMetaScenarioC genVals@GenesisValues{..} = (nodeStParams1, ind, check)
 -- | Scenario D
 -- Two confirmed payments from P0 to P1, using `change` addresses P0 and P0b respectively
 txMetaScenarioD :: forall h. Hash h Addr
-                   => GenesisValues h Addr
+                   => ProtocolMagic
+                   -> GenesisValues h Addr
                    -> TxScenarioRet h
-txMetaScenarioD genVals@GenesisValues{..} = (nodeStParams1, ind, check)
+txMetaScenarioD pm genVals@GenesisValues{..} = (nodeStParams1 pm, ind, check)
   where
     (t0,t1) = repeatPaymentWithChangeFromP0ToP1 genVals p0b
     ind = Inductive {
@@ -228,9 +233,10 @@ txMetaScenarioD genVals@GenesisValues{..} = (nodeStParams1, ind, check)
 --
 -- This scenario exercises Rollback behaviour.
 txMetaScenarioE :: forall h. Hash h Addr
-                   => GenesisValues h Addr
+                   => ProtocolMagic
+                   -> GenesisValues h Addr
                    -> TxScenarioRet h
-txMetaScenarioE genVals@GenesisValues{..} = (nodeStParams1, ind, check)
+txMetaScenarioE pm genVals@GenesisValues{..} = (nodeStParams1 pm, ind, check)
   where
     (t0,t1) = repeatPaymentWithChangeFromP0ToP1 genVals p0b
     ind = Inductive {
@@ -257,9 +263,10 @@ txMetaScenarioE genVals@GenesisValues{..} = (nodeStParams1, ind, check)
 -- A payment from P1 to P0's single address.
 -- This should create IncomingTransactions.
 txMetaScenarioF :: forall h. Hash h Addr
-                  => GenesisValues h Addr
+                  => ProtocolMagic
+                  -> GenesisValues h Addr
                   -> TxScenarioRet h
-txMetaScenarioF genVals@GenesisValues{..} = (nodeStParams1, ind, check)
+txMetaScenarioF pm genVals@GenesisValues{..} = (nodeStParams1 pm, ind, check)
   where
     t0 = paymentWithChangeFromP1ToP0 genVals
     ind = Inductive {
@@ -301,9 +308,10 @@ txMetaScenarioG genVals@GenesisValues{..} = (nodeStParams2, ind, check)
 -- A single pending payment to itself and then confirmation.
 -- This should be a Local Tx.
 txMetaScenarioH :: forall h. Hash h Addr
-                   => GenesisValues h Addr
+                   => ProtocolMagic
+                   -> GenesisValues h Addr
                    -> TxScenarioRet h
-txMetaScenarioH genVals@GenesisValues{..} = (nodeStParams1, ind, check)
+txMetaScenarioH pm genVals@GenesisValues{..} = (nodeStParams1 pm, ind, check)
   where
     t0 = paymentWithChangeFromP0ToP0 genVals
     ind = Inductive {
@@ -323,9 +331,10 @@ txMetaScenarioH genVals@GenesisValues{..} = (nodeStParams1, ind, check)
 -- | Scenario I. This is like Scenario C with rollbacks.
 -- results should not change.
 txMetaScenarioI :: forall h. Hash h Addr
-                   => GenesisValues h Addr
+                   => ProtocolMagic
+                   -> GenesisValues h Addr
                    -> TxScenarioRet h
-txMetaScenarioI genVals@GenesisValues{..} = (nodeStParams1, ind, check)
+txMetaScenarioI pm genVals@GenesisValues{..} = (nodeStParams1 pm, ind, check)
   where
     t0 = paymentWithChangeFromP0ToP1 genVals
     ind = Inductive {
@@ -349,9 +358,10 @@ txMetaScenarioI genVals@GenesisValues{..} = (nodeStParams1, ind, check)
 -- | Scenario J
 -- A single payment with 4 outputs.
 txMetaScenarioJ :: forall h. Hash h Addr
-                   => GenesisValues h Addr
+                   => ProtocolMagic
+                   -> GenesisValues h Addr
                    -> TxScenarioRet h
-txMetaScenarioJ genVals@GenesisValues{..} = (nodeStParams1, ind, check)
+txMetaScenarioJ pm genVals@GenesisValues{..} = (nodeStParams1 pm, ind, check)
   where
     t0 = bigPaymentWithChange genVals
     ind = Inductive {
@@ -383,9 +393,9 @@ checkWithTxs check pw = do
       return $ fromRight (error ("Account not found")) eiTxs
     check txs
 
-nodeStParams1 :: MockNodeStateParams
-nodeStParams1 =
-  withDefConfiguration $ \_pm ->
+nodeStParams1 :: ProtocolMagic -> MockNodeStateParams
+nodeStParams1 pm =
+  withProvidedMagicConfig pm $ \_ _ _ ->
     withDefUpdateConfiguration $
     withCompileInfo $
       MockNodeStateParams {
@@ -418,20 +428,20 @@ nodeStParams2 =
 -- the NodeStateParameters. This is important for Transactions, because
 -- dynamic TxMeta depend on the state of the Node and we want to be flexible
 -- there for better testing.
-bracketActiveWalletTxMeta :: MockNodeStateParams -> (Kernel.ActiveWallet -> IO a) -> IO a
-bracketActiveWalletTxMeta stateParams test =
-    withDefConfiguration $ \genesisConfig -> do
-        bracketPassiveWalletTxMeta stateParams $ \passive ->
-            Kernel.bracketActiveWallet (configProtocolMagic genesisConfig)
-                                       passive
+bracketActiveWalletTxMeta :: ProtocolMagic -> MockNodeStateParams -> (Kernel.ActiveWallet -> IO a) -> IO a
+bracketActiveWalletTxMeta pm stateParams test =
+    withProvidedMagicConfig pm $ \genesisConfig _ _ -> do
+        bracketPassiveWalletTxMeta (configProtocolMagic genesisConfig) stateParams $ \passive ->
+            Kernel.bracketActiveWallet passive
                                        diffusion
                 $ \active -> test active
 
 -- | Initialize passive wallet in a manner suitable for the unit tests
-bracketPassiveWalletTxMeta :: MockNodeStateParams -> (Kernel.PassiveWallet -> IO a) -> IO a
-bracketPassiveWalletTxMeta stateParams postHook = do
+bracketPassiveWalletTxMeta :: ProtocolMagic -> MockNodeStateParams -> (Kernel.PassiveWallet -> IO a) -> IO a
+bracketPassiveWalletTxMeta pm stateParams postHook = do
       Keystore.bracketTestKeystore $ \keystore ->
           Kernel.bracketPassiveWallet
+            pm
             Kernel.UseInMemory
             logMessage
             keystore
