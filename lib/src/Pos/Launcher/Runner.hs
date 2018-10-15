@@ -55,8 +55,11 @@ import           Pos.Reporting.Production (ProductionReporterParams (..),
                      productionReporter)
 import           Pos.Util.CompileInfo (HasCompileInfo, compileInfo)
 import           Pos.Util.Trace (wlogTrace)
+import           Pos.Util.Wlog (logError)
 import           Pos.Web.Server (withRoute53HealthCheckApplication)
 import           Pos.WorkMode (RealMode, RealModeContext (..))
+
+import           System.Environment (lookupEnv)
 
 ----------------------------------------------------------------------------
 -- High level runners
@@ -179,7 +182,12 @@ runServer genesisConfig NodeParams {..} ekgNodeMetrics shdnContext mkLogic act =
         }
     exitOnShutdown action = do
         _ <- race (waitForShutdown shdnContext) action
-        exitWith (ExitFailure 20) -- special exit code to indicate an update
+        mMisUpdateExitCode <- lookupEnv "CARDANO_INJECT_FAILURE_UPDATE_BAD_EXIT_CODE"
+        case mMisUpdateExitCode of
+          Just _ -> do
+                      logError "Injected failure: CARDANO_INJECT_FAILURE_UPDATE_BAD_EXIT_CODE"
+                      exitWith $ ExitFailure 42 -- inject wrong exit code
+          _      -> exitWith $ ExitFailure 20 -- special exit code to indicate an update
     ekgStore = enmStore ekgNodeMetrics
     (hcHost, hcPort) = case npRoute53Params of
         Nothing         -> ("127.0.0.1", 3030)

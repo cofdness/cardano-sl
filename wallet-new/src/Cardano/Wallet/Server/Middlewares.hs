@@ -7,14 +7,17 @@ module Cardano.Wallet.Server.Middlewares
     ( withMiddlewares
     , throttleMiddleware
     , withDefaultHeader
+    , handleIgnoreAPIFaultInject
     ) where
 
 import           Universum
 
 import           Data.Aeson (encode)
+import qualified Data.ByteString.Lazy as BS
 import qualified Data.List as List
 import           Network.HTTP.Types.Header (Header)
 import           Network.HTTP.Types.Method (methodPatch, methodPost, methodPut)
+import           Network.HTTP.Types.Status (status200)
 import           Network.Wai (Application, Middleware, ifRequest,
                      requestHeaders, requestMethod, responseLBS)
 import qualified Network.Wai.Middleware.Throttle as Throttle
@@ -23,6 +26,8 @@ import           Cardano.Wallet.API.V1.Headers (applicationJson)
 import qualified Cardano.Wallet.API.V1.Types as V1
 
 import           Pos.Launcher.Configuration (ThrottleSettings (..))
+import           Pos.Util.Wlog (logError)
+import           System.Environment (lookupEnv)
 
 
 -- | "Attaches" the middlewares to this 'Application'.
@@ -67,3 +72,14 @@ withDefaultHeader header = ifRequestWithBody $ \app req send ->
                 req { requestHeaders = header : headers }
     in
         app req' send
+
+-- | A @Middleware@ to optionally turn the Application stack into a constant responder.
+handleIgnoreAPIFaultInject :: BS.ByteString -> Middleware
+handleIgnoreAPIFaultInject response app =
+  \req respond -> do
+    mEnable <- liftIO $ lookupEnv "CARDANO_INJECT_FAILURE_IGNORE_API"
+    case mEnable of
+      Nothing -> app req respond
+      Just _  -> do
+        logError $ "Injected failure: CARDANO_INJECT_FAILURE_IGNORE_API subverted " <> show req
+        respond $ responseLBS status200 [("Content-Type", "text/plain")] response
