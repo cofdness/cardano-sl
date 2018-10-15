@@ -4,6 +4,7 @@
 , gitrev
 , pkgs
 , connectArgs ? {}
+, useConfigVolume ? false
 }:
 
 with pkgs.lib;
@@ -15,6 +16,8 @@ let
     walletListen = "0.0.0.0:8090";
     walletDocListen = "0.0.0.0:8091";
     ekgListen = "0.0.0.0:8000";
+  } // optionalAttrs useConfigVolume {
+    topologyFile = "/config/topology.yaml";
   } // connectArgs);
   startScript = pkgs.writeScriptBin "cardano-start" ''
     #!/bin/sh
@@ -23,8 +26,16 @@ let
     export LOCALE_ARCHIVE="${pkgs.glibcLocales}/lib/locale/locale-archive"
     if [ ! -d /wallet ]; then
       echo '/wallet volume not mounted, you need to create one with `docker volume create` and pass the correct -v flag to `docker run`'
-    exit 1
+      exit 1
     fi
+
+    ${optionalString useConfigVolume ''
+    if [ ! -f /config/topology.yaml ]; then
+      echo '/config/topology.yaml does not exist. You need to create a /config volume with `docker volume create` and pass the correct -v flag to `docker run`'
+      exit 2
+    fi
+    ''}
+
     cd /wallet
     exec ${connectToCluster}
   '';
