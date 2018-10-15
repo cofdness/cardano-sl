@@ -16428,7 +16428,6 @@ license = stdenv.lib.licenses.mit;
 , cardano-sl-crypto
 , cardano-sl-infra
 , cardano-sl-util
-, cardano-sl-wallet
 , cardano-sl-wallet-new
 , connection
 , cryptonite
@@ -16494,7 +16493,6 @@ cardano-sl-chain
 cardano-sl-core
 cardano-sl-crypto
 cardano-sl-util
-cardano-sl-wallet
 cardano-sl-wallet-new
 connection
 cryptonite
@@ -16544,7 +16542,6 @@ cardano-sl-chain
 cardano-sl-core
 cardano-sl-infra
 cardano-sl-util
-cardano-sl-wallet
 cardano-sl-wallet-new
 ekg
 ekg-core
@@ -16571,7 +16568,6 @@ aeson
 base
 bytestring
 cardano-sl-core
-cardano-sl-wallet
 cardano-sl-wallet-new
 hspec
 mtl
@@ -17274,7 +17270,6 @@ license = stdenv.lib.licenses.mit;
 , cardano-sl-networking
 , cardano-sl-util
 , cardano-sl-util-test
-, cardano-sl-wallet
 , cardano-sl-x509
 , containers
 , cpphs
@@ -17344,7 +17339,6 @@ cardano-sl-db
 cardano-sl-infra
 cardano-sl-networking
 cardano-sl-util
-cardano-sl-wallet
 containers
 data-default
 directory
@@ -17386,7 +17380,6 @@ cardano-sl-db
 cardano-sl-infra
 cardano-sl-networking
 cardano-sl-util
-cardano-sl-wallet
 cardano-sl-x509
 containers
 cryptonite
@@ -18070,7 +18063,6 @@ license = stdenv.lib.licenses.mit;
 , cardano-sl-util
 , cardano-sl-util-test
 , cardano-sl-utxo
-, cardano-sl-wallet
 , cardano-sl-x509
 , cassava
 , cereal
@@ -18196,7 +18188,6 @@ cardano-sl-networking
 cardano-sl-node-ipc
 cardano-sl-util
 cardano-sl-utxo
-cardano-sl-wallet
 cardano-sl-x509
 cereal
 conduit
@@ -18278,7 +18269,6 @@ cardano-sl-db
 cardano-sl-infra
 cardano-sl-networking
 cardano-sl-util
-cardano-sl-wallet
 containers
 exceptions
 formatting
@@ -18319,7 +18309,6 @@ cardano-sl-db
 cardano-sl-util
 cardano-sl-util-test
 cardano-sl-utxo
-cardano-sl-wallet
 cereal
 conduit
 constraints
@@ -18364,7 +18353,6 @@ base
 bytestring
 cardano-sl-client
 cardano-sl-core
-cardano-sl-wallet
 cassava
 connection
 data-default
@@ -18395,7 +18383,6 @@ license = stdenv.lib.licenses.mit;
 , base
 , bytestring
 , cardano-sl-core-test
-, cardano-sl-wallet
 , QuickCheck
 , serokell-util
 , stdenv
@@ -18410,7 +18397,6 @@ libraryHaskellDepends = [
 base
 bytestring
 cardano-sl-core-test
-cardano-sl-wallet
 QuickCheck
 serokell-util
 universum
