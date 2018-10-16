@@ -15,7 +15,8 @@ import           InputSelection.Evaluation.Replot (replot)
 import           Test.Pos.Util.Parallel.Parallelize (parallelizeAllCores)
 import           UTxO.Translate (runTranslateNoErrors, withConfig)
 
-import Pos.Crypto (ProtocolMagic (..), ProtocolMagicId (..), RequiresNetworkMagic (..))
+import           Pos.Crypto (ProtocolMagic (..), ProtocolMagicId (..),
+                     RequiresNetworkMagic (..))
 
 import qualified DeltaCompressionSpecs
 import qualified Test.Spec.Accounts
