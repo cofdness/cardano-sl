@@ -86,8 +86,8 @@ actionWithWallet params genesisConfig walletConfig txpConfig ntpConfig nodeParam
             [
               ("wallet-new api worker",
                 Plugins.apiServer pm params w
-                [ handleIgnoreAPIFaultInject "0"               -- Deferred enablement decision to allow dynamic control
-                , throttleMiddleware (ccThrottle walletConfig) -- Throttle requests
+                [ faultInjectHandleIgnoreAPI (npFInjects nodeParams) -- This allows dynamic control of fault injection
+                , throttleMiddleware (ccThrottle walletConfig)       -- Throttle requests
                 , withDefaultHeader Headers.applicationJson
                 ])
 

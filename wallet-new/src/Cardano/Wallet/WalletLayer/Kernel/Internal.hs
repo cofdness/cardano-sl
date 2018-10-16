@@ -16,7 +16,7 @@ import           Data.Acid.Advanced (update')
 import           System.IO.Error (isDoesNotExistError)
 
 import           Pos.Chain.Update (ConfirmedProposalState, SoftwareVersion)
-import           Pos.Util.Wlog (logError)
+import           Pos.Infra.InjectFail (FInject(..), testLogFInject)
 
 import           Cardano.Wallet.API.V1.Types (V1 (..), Wallet,
                      WalletImport (..))
@@ -31,8 +31,6 @@ import qualified Cardano.Wallet.Kernel.Submission as Submission
 import           Cardano.Wallet.WalletLayer (CreateWallet (..),
                      ImportWalletError (..))
 import           Cardano.Wallet.WalletLayer.Kernel.Wallets (createWallet)
-
-import           System.Environment (lookupEnv)
 
 -- | Get next update (if any)
 --
@@ -64,10 +62,9 @@ applyUpdate :: MonadIO m => Kernel.PassiveWallet -> m ()
 applyUpdate w = liftIO $ do
     update' (w ^. Kernel.wallets) $ RemoveNextUpdate
     Node.withNodeState (w ^. Kernel.walletNode) $ \_lock -> do
-      mMisUpdateExit <- liftIO $ lookupEnv "CARDANO_INJECT_FAILURE_UPDATE_NO_EXIT"
-      case mMisUpdateExit of
-        Nothing -> Node.triggerShutdown
-        Just _  -> logError "Injected failure: CARDANO_INJECT_FAILURE_UPDATE_NO_EXIT"
+      mFail <- testLogFInject ??? FInjApplyUpdateNoExit
+      when (isJust mFail)
+        Node.triggerShutdown
 
 -- | Postpone update
 --

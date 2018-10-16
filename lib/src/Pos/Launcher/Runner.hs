@@ -39,6 +39,7 @@ import           Pos.Diffusion.Full (FullDiffusionConfiguration (..),
                      diffusionLayerFull)
 import           Pos.Infra.Diffusion.Types (Diffusion (..), DiffusionLayer (..),
                      hoistDiffusion)
+import           Pos.Infra.InjectFail (FInject(..), testLogFInject)
 import           Pos.Infra.Network.Types (NetworkConfig (..),
                      topologyRoute53HealthCheckEnabled)
 import           Pos.Infra.Reporting.Ekg (EkgNodeMetrics (..),
@@ -55,11 +56,8 @@ import           Pos.Reporting.Production (ProductionReporterParams (..),
                      productionReporter)
 import           Pos.Util.CompileInfo (HasCompileInfo, compileInfo)
 import           Pos.Util.Trace (wlogTrace)
-import           Pos.Util.Wlog (logError)
 import           Pos.Web.Server (withRoute53HealthCheckApplication)
 import           Pos.WorkMode (RealMode, RealModeContext (..))
-
-import           System.Environment (lookupEnv)
 
 ----------------------------------------------------------------------------
 -- High level runners
@@ -156,7 +154,7 @@ runServer
     -> (Diffusion IO -> Logic IO)
     -> (Diffusion IO -> IO t)
     -> IO t
-runServer genesisConfig NodeParams {..} ekgNodeMetrics shdnContext mkLogic act = exitOnShutdown $
+runServer genesisConfig NodeParams {..} ekgNodeMetrics shdnContext mkLogic act = exitOnShutdown npFInjects $
     diffusionLayerFull fdconf
                        npNetworkConfig
                        (Just ekgNodeMetrics)
@@ -180,14 +178,13 @@ runServer genesisConfig NodeParams {..} ekgNodeMetrics shdnContext mkLogic act =
         , fdcTrace = wlogTrace "diffusion"
         , fdcStreamWindow = streamWindow
         }
-    exitOnShutdown action = do
+    exitOnShutdown fInjects action = do
         _ <- race (waitForShutdown shdnContext) action
-        mMisUpdateExitCode <- lookupEnv "CARDANO_INJECT_FAILURE_UPDATE_BAD_EXIT_CODE"
-        case mMisUpdateExitCode of
-          Just _ -> do
-                      logError "Injected failure: CARDANO_INJECT_FAILURE_UPDATE_BAD_EXIT_CODE"
-                      exitWith $ ExitFailure 42 -- inject wrong exit code
-          _      -> exitWith $ ExitFailure 20 -- special exit code to indicate an update
+        doFail <- testLogFInject fInjects FInjApplyUpdateWrongExitCode
+        exitWith $ ExitFailure $
+          if doFail
+          then 42 -- inject wrong exit code
+          else 20 -- special exit code to indicate an update
     ekgStore = enmStore ekgNodeMetrics
     (hcHost, hcPort) = case npRoute53Params of
         Nothing         -> ("127.0.0.1", 3030)
